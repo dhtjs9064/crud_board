@@ -33,3 +33,11 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+sourceSets {
+    main {
+        java {
+            exclude 'temp/**'
+        }
+    }
+}
