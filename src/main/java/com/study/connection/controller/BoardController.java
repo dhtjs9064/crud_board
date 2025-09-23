@@ -18,21 +18,28 @@ import java.util.List;
 public class BoardController extends HttpServlet {
     // 직렬화된 객체의 버전을 식별하는 고유 ID
     // 직렬화 : 객체를 바이트 스트림으로 변환해서 전송 가능한 형태로 만드는 것
+    // 만약 명시적 선언하지 않는다면 호환 문제가 발생할 수 있다고 한다.
     private static final long serialVersionUID = 1L;
 
     public BoardController() {
         super();
     }
 
+    // 원하는 경로만 추출하는 메서드
     private String getCommand(HttpServletRequest request) {
+        /* localhost를 제외한 전체 경로를 얻는다
+        ex) http://localhost:8080/my-app/boards/free/list이면 
+        /my-app/boards/free/list를 얻음*/
         String uri = request.getRequestURI();
+        // 루트 경로를 얻는다 즉, /my-app을 얻는다
         String path = request.getContextPath();
+        // uri에서 루트 경로를 제외한 나머지를 반환한다. 즉, 원하는 /boards/free/list만 얻게된다.
         String command = uri.substring(path.length());
         return command;
     }
 
-    // get, post 병합. 앞으로 모든 요청은 이 곳을 통하고 각 핸들러에 뿌려주게 된다.
 
+    // get, post 병합. 앞으로 모든 요청은 이 곳을 통하고 각 핸들러에 조건에 부합한 요청을 뿌려주게 된다.
     /**
      * : 하지만 AI는 doGet, doPost로 나누는 것이 더 좋다고 한다...
      **/
@@ -40,25 +47,33 @@ public class BoardController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String command = getCommand(request);
 
+        // 메서드를 얻어서 무슨 요청인지 확인한다.
         String method = request.getMethod();
-        // 브라우저는 처음에는 GET요청을 보낼것이므로 자연스럽게 list 화면을 보게됨
+        // 브라우저는 처음에는 GET요청을 보낼것이므로 자연스럽게 web.xml을 통해 list 화면을 보게됨
+        // 이곳에서 브라우저의 단순 정보 요청을 받는다.
         if (method.equals("GET")) {
-            if ("/".equals(command)) {
-                handleDefaultRequest(request, response);
-            } else if ("/boards/free/list".equals(command)) {
-                handleListRequest(request, response);
-            } else if ("/boards/free/write".equals(command)) {
-                handleWriteRequest(request, response);
-            } else if ("/boards/free/view".equals(command)) {
-                handleViewRequest(request, response);
-            } else if ("/boards/free/modify".equals(command)) {
-                handleModifyRequest(request, response);
-            } else {
-                // 알 수 없는 요청일 경우 405
-                response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "해당 페이지를 찾을 수 없습니다.");
+            switch (command) {
+                // 초기페이지면 list페이지로
+                case "/":
+                case "/boards/free/list":
+                    handleListRequest(request, response);
+                    break;
+                case "/boards/free/write":
+                    handleWriteRequest(request, response);
+                    break;
+                case "/boards/free/view":
+                    handleViewRequest(request, response);
+                    break;
+                case "/boards/free/modify":
+                    handleModifyRequest(request, response);
+                    break;
+                default:
+                    // 알 수 없는 요청일 경우 405
+                    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "해당 페이지를 찾을 수 없습니다.");
+                    break;
             }
 
-
+            // 브라우저가 데이터 생성, 수정, 삭제등을 원한다면 이곳에서 받는다.
         } else if (method.equals("POST")) {
             if ("/boards/free/writeAction".equals(command)) {
                 handleWriteActionRequest(request, response);
@@ -71,12 +86,6 @@ public class BoardController extends HttpServlet {
         } else {
             response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "허용되지 않는 HTTP 메서드입니다.");
         }
-    }
-
-    // handleListRequest를 요청하면 불필요한 로직이 있기에 목적대로 바로 jsp실행
-    private void handleDefaultRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/boards/free/list/board_list.jsp").forward(request, response);
-        // TODO: 초기 페이지에서 작성한 글이 바로 반영되지 않는 문제가 있음 (새로고침해야 보임)
     }
 
     // 목록 조회 요청에 대한 처리를 하는 핸들러
