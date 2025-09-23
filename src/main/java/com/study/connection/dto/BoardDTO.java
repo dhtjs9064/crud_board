@@ -1,34 +1,29 @@
 package com.study.connection.dto;
 
-public class Board {
+import java.time.LocalDateTime;
+
+public class BoardDTO {
     private int boardID;
     private String category;
     private String title;
     private String writer;
-    private String views;
-    private java.sql.Timestamp createdAt;
-    private java.sql.Timestamp updatedAt;
+    private String password;
+    private int views;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String content;
+    private int available;
 
     // 객체 생성을 위한 기본 생성자
-    public Board(){
-        
-    }
-    
-    public Board(int boardID, String category, String title, String writer, String views) {
-        this.boardID = boardID;
-        this.category = category;
-        this.title = title;
-        this.writer = writer;
-        this.views = views;
-        this.createdAt = new java.sql.Timestamp(System.currentTimeMillis());
-        this.updatedAt = new java.sql.Timestamp(System.currentTimeMillis());
-    }
+    public BoardDTO() {
 
+    }
 
     // getter / setter 생성
     public int getBoardID() {
         return boardID;
     }
+
     public void setBoardID(int boardID) {
         this.boardID = boardID;
     }
@@ -37,7 +32,8 @@ public class Board {
     public String getCategory() {
         return category;
     }
-    public void setCategory(String Category) {
+
+    public void setCategory(String category) {
         this.category = category;
     }
 
@@ -45,39 +41,61 @@ public class Board {
     public String getTitle() {
         return title;
     }
+
     public void setTitle(String title) {
         this.title = title;
     }
 
-
     public String getWriter() {
         return writer;
     }
+
     public void setWriter(String writer) {
         this.writer = writer;
     }
 
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getViews() {
+    public int getViews() {
         return views;
     }
-    public void setViews(String views) {
+
+    public void setViews(int views) {
         this.views = views;
     }
 
 
-    public java.sql.Timestamp getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
     public void setCreatedAt(java.sql.Timestamp createdAt) {
-        this.createdAt = createdAt;
+        this.createdAt = createdAt.toLocalDateTime();
     }
 
 
-    public java.sql.Timestamp getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
     public void setUpdatedAt(java.sql.Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
+        this.updatedAt = updatedAt.toLocalDateTime();
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public int getAvailable() {
+        return available;
+    }
+
+    public void setAvailable(int available) {
+        this.available = available;
     }
 }
