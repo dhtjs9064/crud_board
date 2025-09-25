@@ -40,6 +40,7 @@ public class BoardController extends HttpServlet {
 
 
     // get, post 병합. 앞으로 모든 요청은 이 곳을 통하고 각 핸들러에 조건에 부합한 요청을 뿌려주게 된다.
+
     /**
      * : 하지만 AI는 doGet, doPost로 나누는 것이 더 좋다고 한다...
      **/
@@ -67,6 +68,11 @@ public class BoardController extends HttpServlet {
                 case "/boards/free/modify":
                     handleModifyRequest(request, response);
                     break;
+
+                case "/boards/free/delete":
+                    handleDeleteRequest(request, response);
+                    break;
+
                 default:
                     // 알 수 없는 요청일 경우 405
                     response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "해당 페이지를 찾을 수 없습니다.");
@@ -79,6 +85,8 @@ public class BoardController extends HttpServlet {
                 handleWriteActionRequest(request, response);
             } else if ("/boards/free/modifyAction".equals(command)) {
                 handleModifyActionRequest(request, response);
+            } else if ("/boards/free/deleteAction".equals(command)) {
+                handleDeleteActionRequest(request, response);
             } else {
                 // 알 수 없는 요청일 경우 405
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "해당 페이지를 찾을 수 없습니다.");
@@ -86,6 +94,30 @@ public class BoardController extends HttpServlet {
         } else {
             response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "허용되지 않는 HTTP 메서드입니다.");
         }
+    }
+
+    // 게시물 등록을 하거나 수정할 때 각 파라미터를 얻어서 세팅한다.
+    // 사용자가 작성하려는것인지 수정하려는것인지에 대한 isWrite 플래그 추가
+    private BoardDTO buildBoardFromRequest(HttpServletRequest request, boolean isWrite) {
+        BoardDTO board = new BoardDTO();
+
+        // write할 경우에는 카테고리를 작성하므로 적용됨 (물론 지금은 modify에서도 열어놨기에 같이 적용될듯)
+        if (isWrite) {
+            String category = request.getParameter("boardCategory");
+            if (category != null && !category.isEmpty()) {
+                board.setCategory(category);
+            }
+            // 게시글 활성화
+            board.setAvailable(1);
+        }
+
+        // 등록/수정의 공통 필드
+        board.setWriter(request.getParameter("boardWriter"));
+        board.setPassword(request.getParameter("boardPassword"));
+        board.setTitle(request.getParameter("boardTitle"));
+        board.setContent(request.getParameter("boardContent"));
+
+        return board;
     }
 
     // 목록 조회 요청에 대한 처리를 하는 핸들러
@@ -96,6 +128,7 @@ public class BoardController extends HttpServlet {
         try {
             String pageParam = request.getParameter("pageNumber");
             if (pageParam != null) {
+                // HTTP 프로토콜 = text기반 = 숫자도 문자형
                 pageNumber = Integer.parseInt(pageParam);
             }
         } catch (NumberFormatException e) {
@@ -105,6 +138,7 @@ public class BoardController extends HttpServlet {
         String boardCategory = request.getParameter("boardCategory");
         String searchKeyword = request.getParameter("searchKeyword");
 
+        // list에서는 항상 이렇게 3개의 필드가 필요함
         List<BoardDTO> list = dao.getList(pageNumber, boardCategory, searchKeyword);
         request.setAttribute("list", list);
         request.setAttribute("pageNumber", pageNumber);
@@ -129,25 +163,6 @@ public class BoardController extends HttpServlet {
     private void handleWriteRequest(HttpServletRequest request, HttpServletResponse response) throws
             ServletException, IOException {
         request.getRequestDispatcher("/boards/free/write/board_write.jsp").forward(request, response);
-    }
-
-    // 사용자가 작성하려는것인지 수정하려는것인지에 대한 isWrite 플래그 추가
-    private BoardDTO buildBoardFromRequest(HttpServletRequest request, boolean isWrite) {
-        BoardDTO board = new BoardDTO();
-
-        // write할 경우에는 카테고리를 작성하므로 적용됨 (물론 지금은 modify에서도 열어놨기에 같이 적용될듯)
-        String category = request.getParameter("boardCategory");
-        if (isWrite && category != null && !category.isEmpty()) {
-            board.setCategory(category);
-        }
-
-        board.setWriter(request.getParameter("boardWriter"));
-        board.setPassword(request.getParameter("boardPassword"));
-        board.setTitle(request.getParameter("boardTitle"));
-        board.setContent(request.getParameter("boardContent"));
-        board.setAvailable(1);
-
-        return board;
     }
 
     // 실제 동작은 아직 안하지만 나중에 필요할지 고민
@@ -218,6 +233,47 @@ public class BoardController extends HttpServlet {
             }
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 게시글 ID입니다.");
+        }
+    }
+
+    private void handleDeleteRequest(HttpServletRequest request, HttpServletResponse response) throws
+            ServletException, IOException {
+
+        BoardDTO board = BoardUtils.getValidBoard(request, response);
+        if (board != null) {
+            request.setAttribute("board", board);
+            request.getRequestDispatcher("/boards/free/delete/board_checkPassword.jsp").forward(request, response);
+        }
+
+    }
+
+    private void handleDeleteActionRequest(HttpServletRequest request, HttpServletResponse response) throws
+            ServletException, IOException {
+
+        BoardDTO boardDTO = BoardUtils.getValidBoard(request, response);
+        String password = request.getParameter("password");
+
+        if (boardDTO == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "삭제할 게시글을 찾을 수 없습니다.");
+            return;
+        }
+
+        if (!boardDTO.getPassword().equals(password)) {
+            request.setAttribute("errorMessage", "비밀번호가 틀렸습니다.");
+            request.setAttribute("board", boardDTO);
+            request.getRequestDispatcher("/boards/free/delete/board_checkPassword.jsp").forward(request, response);
+            return;
+        }
+
+        BoardDAO boardDAO = new BoardDAO();
+        int result = boardDAO.delete(boardDTO.getBoardID());
+
+        if (result == 1) {
+            response.sendRedirect(request.getContextPath() + "/boards/free/list");
+        } else {
+            // TODO : 에러메시지는 나중에
+            request.setAttribute("errorMessage", "삭제에 실패했습니다.");
+            request.getRequestDispatcher("/boards/free/view/board_view.jsp").forward(request, response);
         }
     }
 }
