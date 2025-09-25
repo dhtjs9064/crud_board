@@ -145,7 +145,7 @@ public class BoardDAO {
                     dto.setCategory(rs.getString("category"));
                     dto.setTitle(rs.getString("title"));
                     dto.setWriter(rs.getString("writer"));
-//                    dto.setPassword(rs.getString("password"));
+                    dto.setPassword(rs.getString("password"));
                     dto.setViews(rs.getInt("views"));
                     dto.setCreatedAt(rs.getTimestamp("createdAt"));
                     dto.setUpdatedAt(rs.getTimestamp("updatedAt"));
