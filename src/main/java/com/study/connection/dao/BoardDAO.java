@@ -187,4 +187,25 @@ public class BoardDAO {
         // catch문이 이뤄질경우 = 입력안됨 = 반환 실패 = -1 반환
         return -1;
     }
+
+    public int delete (int boardID) {
+        // BoardDTO 객체에 사용자가 입력한 정보들을 board테이블에 저장
+        // available = 0을 만듦으로써 db에는 데이터가 남아있어도 화면에서는 안보이게 됨
+        String SQL = "UPDATE board SET available = 0 WHERE boardID = ?";
+        // 동시에 db 작업을 수행하기 위해 이렇게 따로 다시 생성함
+        try (Connection conn = DriverManager.getConnection(dbURL, USER, PASS);
+             // sql쿼리 실행 전 미리 변수 값을 채워둠(여기서는 사용자가 입력한 데이터를 의미함)
+             PreparedStatement ps = conn.prepareStatement(SQL)) {
+
+            ps.setInt(1, boardID);
+            return ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        // catch문이 이뤄질경우 = 입력안됨 = 반환 실패 = -1 반환
+        return -1;
+    }
 }
