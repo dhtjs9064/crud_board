@@ -4,11 +4,13 @@ import com.study.connection.BoardUtils;
 import com.study.connection.dao.BoardDAO;
 import com.study.connection.dto.BoardDTO;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
+import java.io.Serial;
 import java.util.List;
 // command로 분리
 // 모든 진입점은 controller
@@ -19,6 +21,7 @@ public class BoardController extends HttpServlet {
     // 직렬화된 객체의 버전을 식별하는 고유 ID
     // 직렬화 : 객체를 바이트 스트림으로 변환해서 전송 가능한 형태로 만드는 것
     // 만약 명시적 선언하지 않는다면 호환 문제가 발생할 수 있다고 한다.
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public BoardController() {
@@ -28,7 +31,7 @@ public class BoardController extends HttpServlet {
     // 원하는 경로만 추출하는 메서드
     private String getCommand(HttpServletRequest request) {
         /* localhost를 제외한 전체 경로를 얻는다
-        ex) http://localhost:8080/my-app/boards/free/list이면 
+        ex) http://localhost:8080/my-app/boards/free/list이면
         /my-app/boards/free/list를 얻음*/
         String uri = request.getRequestURI();
         // 루트 경로를 얻는다 즉, /my-app을 얻는다

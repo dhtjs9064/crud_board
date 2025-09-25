@@ -3,9 +3,9 @@ package com.study.connection;
 import com.study.connection.dao.BoardDAO;
 import com.study.connection.dto.BoardDTO;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class BoardUtils {
