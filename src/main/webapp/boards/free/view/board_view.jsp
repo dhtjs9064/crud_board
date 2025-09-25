@@ -89,9 +89,7 @@
         <!-- Todo : list도 id를 붙여야할까 -->
         <a href="<%= request.getContextPath() %>/boards/free/list" class="btn btn-primary">목록</a>
         <a href="<%= request.getContextPath() %>/boards/free/modify?boardID=<%= boardDTO.getBoardID() %>" class="btn btn-primary">수정</a>
-        <!-- 다만 삭제는 바로 삭제가 되어야하기에 별도의 삭제 페이지는 필요가 없다. (고민해보기)-->
-        <!-- TODO: 아직 구현하라는 내용이 없기에 보류-->
-        <a href="<%= request.getContextPath() %>/boards/free/delete" class="btn btn-primary">삭제</a>
+        <a href="<%= request.getContextPath() %>/boards/free/delete?boardID=<%= boardDTO.getBoardID() %>" class="btn btn-primary">삭제</a>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
