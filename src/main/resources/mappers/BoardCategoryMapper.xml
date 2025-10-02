@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.study.connection.repository.BoardCategoryRepository">
+
+    <select id="findAll" resultType="com.study.connection.domain.entity.BoardCategory">
+        SELECT category_id,
+               category_name
+        FROM
+            board_category
+        ORDER BY
+            <!-- id는 오름차순(기본값)-->
+            category_id
+    </select>
+
+</mapper>
