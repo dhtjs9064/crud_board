@@ -4,6 +4,6 @@ import lombok.Getter;
 
 @Getter
 public class BoardCategory {
-    private String CategoryId; // 카테고리 기본키
-    private String CategoryName; // 카테고리 이름
+    private String categoryId; // 카테고리 기본키
+    private String categoryName; // 카테고리 이름
 }
