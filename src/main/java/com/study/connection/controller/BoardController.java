@@ -12,9 +12,26 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.List;
-// command로 분리
-// 모든 진입점은 controller
-// doget, dopost = service로
+
+// TODO : 작명 고치기
+// TODO : 제 3자 관점에서 무슨 로직인지 알 수 있도록
+@RequiredArgsConstructor()
+@Controller
+@RequestMapping("/boards/free")
+// 클라이언트의 요청을 받고 service에 넘겨주고 다시 받을 것임
+public class BoardController {
+
+    // 1. service에서 정보를 주고 받음
+    private final BoardListService boardListService;
+    private final BoardCategoryService boardCategoryService;
+
+    @GetMapping({"/", "/list"})
+    public String list(BoardListRequest request, Model model) {
+
+        // 2. Service가 페이징과 목록을 모두 계산하여 반환함
+        BoardListPageResponse result = boardListService.getBoardList(request);
+        // 3. Model에 Result DTO의 정보를 담음
+        List<BoardCategoryResponse> categories = boardCategoryService.getAllCategories();
 
 
 public class BoardController extends HttpServlet {
