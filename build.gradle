@@ -1,6 +1,10 @@
 plugins {
     id 'java'
     id 'war'
+    // spring 플러그인
+    id 'org.springframework.boot' version '3.2.0'
+    // 의존성 관리
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group 'com.study'
@@ -11,25 +15,47 @@ repositories {
 }
 
 ext {
-    junitVersion = '5.8.2'
+    junitVersion = '5.10.0'
 }
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = '21'
+targetCompatibility = '21'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
 dependencies {
-    compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+    // Spring Boot 웹
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    implementation 'javax.servlet:jstl:1.2'
+    // providedRuntime으로 내장 tomcat포함 x
+    // 외부 WAS(Tomcat)에 배포
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-    implementation 'mysql:mysql-connector-java:8.0.28'
+    // mybatis, mysql
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+    runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
 
+    // JSP 파일 처리 추가
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+    // JSTL 라이브러리
+    implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api'
+    runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1'
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // TODO : 왜 이 3개나 필요한걸까
+    // MapStruct 설정
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 }
 
 test {

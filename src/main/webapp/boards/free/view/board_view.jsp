@@ -1,5 +1,5 @@
 <%@ page import="java.io.PrintWriter" %>
-<%@ page import="com.study.connection.dao.BoardDAO" %>
+<%@ page import="com.study.connection.repository.BoardRepository" %>
 <%@ page import="com.study.connection.dto.BoardDTO" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8" %>

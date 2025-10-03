@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 인터페이스 경로 -->
+<mapper namespace="com.study.connection.repository.BoardRepository">
+<!-- TODO: 화면을 보여주기전 데이터만 작성-->
+<!-- TODO: db.sql만들기-->
+    <!-- 목록 조회 -->
+    <select id="getList" resultType="com.study.connection.dto.BoardListItemResponse">
+        SELECT boardID, category, title, writer, views, createdAt, updatedAt, content, available
+        FROM board
+        <where>
+            available = 1
+            <if test="category != null and category != '' and category != '전체'">
+                AND category = #{category}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                title LIKE CONCAT('%', #{keyword}, '%')
+                OR writer LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY boardID DESC
+        <!-- service의 db -->
+        LIMIT #{limit}
+        OFFSET #{skipPage}
+    </select>
+
+    <!-- 게시글 등록 -->
+    <insert id="write" parameterType="BoardDTO" useGeneratedKeys="true" keyProperty="boardID">
+        INSERT INTO board (category, title, writer, password, content, available)
+        VALUES (#{category}, #{title}, #{writer}, #{password}, #{content}, #{available})
+    </insert>
+
+    <!-- 게시글 보기 -->
+    <select id="getBoard" resultType="BoardDTO">
+        SELECT * FROM board WHERE boardID = #{boardID}
+    </select>
+
+    <!-- 게시글 수정 -->
+    <update id="modify">
+        UPDATE board
+        SET
+            writer = #{writer},
+            password = #{password},
+            title = #{title},
+            content = #{content},
+            updatedAt = NOW()
+        WHERE boardID = #{boardId} AND password = #{password}
+    </update>
+
+    <!-- 게시글 삭제 (안보이게) -->
+    <update id="delete">
+        UPDATE board
+        SET available = 0
+        WHERE boardID = #{boardID}
+    </update>
+</mapper>

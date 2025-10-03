@@ -1,16 +1,16 @@
 package com.study.connection.controller;
 
-import com.study.connection.BoardUtils;
-import com.study.connection.dao.BoardDAO;
-import com.study.connection.dto.BoardDTO;
+import com.study.connection.dto.BoardCategoryResponse;
+import com.study.connection.dto.BoardListPageResponse;
+import com.study.connection.dto.BoardListRequest;
+import com.study.connection.service.BoardCategoryService;
+import com.study.connection.service.BoardListService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-import java.io.Serial;
 import java.util.List;
 
 // TODO : 작명 고치기
@@ -33,267 +33,183 @@ public class BoardController {
         // 3. Model에 Result DTO의 정보를 담음
         List<BoardCategoryResponse> categories = boardCategoryService.getAllCategories();
 
+        // 카테고리 추가
+        model.addAttribute("categories", categories);
 
-public class BoardController extends HttpServlet {
-    // 직렬화된 객체의 버전을 식별하는 고유 ID
-    // 직렬화 : 객체를 바이트 스트림으로 변환해서 전송 가능한 형태로 만드는 것
-    // 만약 명시적 선언하지 않는다면 호환 문제가 발생할 수 있다고 한다.
-    @Serial
-    private static final long serialVersionUID = 1L;
+        // 게시글 목록
+        model.addAttribute("list", result.getList());
 
-    public BoardController() {
-        super();
+        // 검색 및 페이징 상태 유지
+        model.addAttribute("pageNumber", result.getPageNumber());
+        model.addAttribute("boardCategory", request.getBoardCategory());
+        model.addAttribute("searchKeyword", request.getSearchKeyword());
+
+        // 페이징 정보
+        model.addAttribute("nextPage", result.isHasNextPage());
+
+        // application.properties의 prefix와 suffix를 통해 앞에 자동으로 붙여 읽기에 문제없음
+        return "list/board_list";
     }
+/*    // mybatis에서 구현한 BoardDAO 객체를 Spring(Autowired로)이 주입해줌 = new BoardDAO 안해도됨
+    // 이제 Mapper가 붙은 BoardDAO를 통해 xml파일의 sql쿼리를 읽어서 그 안의 실제 구현코드를 생성할 수 있음
+    private final BoardRepository boardDAO;
 
-    // 원하는 경로만 추출하는 메서드
-    private String getCommand(HttpServletRequest request) {
-        /* localhost를 제외한 전체 경로를 얻는다
-        ex) http://localhost:8080/my-app/boards/free/list이면
-        /my-app/boards/free/list를 얻음*/
-        String uri = request.getRequestURI();
-        // 루트 경로를 얻는다 즉, /my-app을 얻는다
-        String path = request.getContextPath();
-        // uri에서 루트 경로를 제외한 나머지를 반환한다. 즉, 원하는 /boards/free/list만 얻게된다.
-        String command = uri.substring(path.length());
-        return command;
-    }
+    @GetMapping({"/", "/list"})
+    // RequestParam : Http 요청 쿼리 파라미터(url의 ?뒤 키-값)를 자바 메서드의 변수로 자동 연결해줌
+    public String list(BoardListRequest request,
+                       // required = false로 함으로써 혹시라도 사용자가 검색을 사용하지 않아도 검색에 오류가 없음
+                       // Model : 컨트롤러와 jsp연결
+                       Model model) {
+
+        *//** 아래와 같은 로직들은 service 계층에 있으면 좋을 것 같음 **//*
+
+        int pageSize = 10;
+
+        // 건너뛸 페이지 수
+        int pageNumber = (request.getPageNumber() == 0) ? 1 : request.getPageNumber();
+        int skipPage = (pageNumber - 1) * pageSize;
+
+        // getlist를 통해 여러 행의 데이터들이 있을것이므로 이를 list객체에 담아 하나로 사용한다.
+        List<BoardDTO> list = boardDAO.getList(skipPage, request.getBoardCategory(), request.getSearchKeyword());
+
+        // addAttribute = setAttribute
+        model.addAttribute("list", list);
+        model.addAttribute("pageNumber", pageNumber);
+        model.addAttribute("boardCategory", request.getBoardCategory());
+        model.addAttribute("searchKeyword", request.getSearchKeyword());
+
+        // application.properties의 prefix와 suffix를 통해 앞에 자동으로 붙여 읽기에 문제없음
+        return "list/board_list";
+        }*/
 
 
-    // get, post 병합. 앞으로 모든 요청은 이 곳을 통하고 각 핸들러에 조건에 부합한 요청을 뿌려주게 된다.
+/*    // TODO : RequestParam 쿼리들은 responseDTO로
+    @GetMapping("/view")
+    public String view(@RequestParam int boardID, Model model) {
+        BoardDTO boardDTO = boardDAO.getBoard(boardID);
 
-    /**
-     * : 하지만 AI는 doGet, doPost로 나누는 것이 더 좋다고 한다...
-     **/
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        String command = getCommand(request);
-
-        // 메서드를 얻어서 무슨 요청인지 확인한다.
-        String method = request.getMethod();
-        // 브라우저는 처음에는 GET요청을 보낼것이므로 자연스럽게 web.xml을 통해 list 화면을 보게됨
-        // 이곳에서 브라우저의 단순 정보 요청을 받는다.
-        if (method.equals("GET")) {
-            switch (command) {
-                // 초기페이지면 list페이지로
-                case "/":
-                case "/boards/free/list":
-                    handleListRequest(request, response);
-                    break;
-                case "/boards/free/write":
-                    handleWriteRequest(request, response);
-                    break;
-                case "/boards/free/view":
-                    handleViewRequest(request, response);
-                    break;
-                case "/boards/free/modify":
-                    handleModifyRequest(request, response);
-                    break;
-
-                case "/boards/free/delete":
-                    handleDeleteRequest(request, response);
-                    break;
-
-                default:
-                    // 알 수 없는 요청일 경우 405
-                    response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "해당 페이지를 찾을 수 없습니다.");
-                    break;
-            }
-
-            // 브라우저가 데이터 생성, 수정, 삭제등을 원한다면 이곳에서 받는다.
-        } else if (method.equals("POST")) {
-            if ("/boards/free/writeAction".equals(command)) {
-                handleWriteActionRequest(request, response);
-            } else if ("/boards/free/modifyAction".equals(command)) {
-                handleModifyActionRequest(request, response);
-            } else if ("/boards/free/deleteAction".equals(command)) {
-                handleDeleteActionRequest(request, response);
-            } else {
-                // 알 수 없는 요청일 경우 405
-                response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "해당 페이지를 찾을 수 없습니다.");
-            }
+        if (boardDTO != null) {
+            model.addAttribute("board", boardDTO);
+            return "view/board_view";
         } else {
-            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "허용되지 않는 HTTP 메서드입니다.");
+            model.addAttribute("errorMessage", "해당 게시글을 찾을 수 없음");
+            return "error/error_page";
         }
     }
 
-    // 게시물 등록을 하거나 수정할 때 각 파라미터를 얻어서 세팅한다.
-    // 사용자가 작성하려는것인지 수정하려는것인지에 대한 isWrite 플래그 추가
-    private BoardDTO buildBoardFromRequest(HttpServletRequest request, boolean isWrite) {
-        BoardDTO board = new BoardDTO();
-
-        // write할 경우에는 카테고리를 작성하므로 적용됨 (물론 지금은 modify에서도 열어놨기에 같이 적용될듯)
-        if (isWrite) {
-            String category = request.getParameter("boardCategory");
-            if (category != null && !category.isEmpty()) {
-                board.setCategory(category);
-            }
-            // 게시글 활성화
-            board.setAvailable(1);
-        }
-
-        // 등록/수정의 공통 필드
-        board.setWriter(request.getParameter("boardWriter"));
-        board.setPassword(request.getParameter("boardPassword"));
-        board.setTitle(request.getParameter("boardTitle"));
-        board.setContent(request.getParameter("boardContent"));
-
-        return board;
+    // write페이지를 보여줄때
+    @GetMapping("/write")
+    public String write() {
+        return "write/board_write";
     }
 
-    // 목록 조회 요청에 대한 처리를 하는 핸들러
-    private void handleListRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        BoardDAO dao = new BoardDAO();
-        int pageNumber = 1;
+    @PostMapping("/writeAction")
+    public String writeAction(@ModelAttribute BoardDTO boardDTO, Model model) {
+        // TODO : @vaild 사용
+        if (boardDTO.getCategory() == null || boardDTO.getWriter() == null || boardDTO.getPassword() == null || boardDTO.getTitle() == null || boardDTO.getContent() == null ||
+                boardDTO.getCategory().isEmpty() || boardDTO.getWriter().isEmpty() || boardDTO.getPassword().isEmpty() || boardDTO.getTitle().isEmpty() || boardDTO.getContent().isEmpty()) {
 
-        try {
-            String pageParam = request.getParameter("pageNumber");
-            if (pageParam != null) {
-                // HTTP 프로토콜 = text기반 = 숫자도 문자형
-                pageNumber = Integer.parseInt(pageParam);
-            }
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
+            *//** errorMessage는 일단 하나로**//*
+            // TODO : 에러 핸들러 사용
+            model.addAttribute("errorMessage", "모든 항목을 입력해주세요.");
+            return "write/board_write";
         }
 
-        String boardCategory = request.getParameter("boardCategory");
-        String searchKeyword = request.getParameter("searchKeyword");
+        boardDTO.setAvailable(1);
 
-        // list에서는 항상 이렇게 3개의 필드가 필요함
-        List<BoardDTO> list = dao.getList(pageNumber, boardCategory, searchKeyword);
-        request.setAttribute("list", list);
-        request.setAttribute("pageNumber", pageNumber);
-        request.setAttribute("boardCategory", boardCategory);
-        request.setAttribute("searchKeyword", searchKeyword);
+        int result = boardDAO.write(boardDTO);
 
-        boolean nextPage = dao.nextPage(pageNumber + 1);
-        request.setAttribute("nextPage", nextPage);
-
-        request.getRequestDispatcher("/boards/free/list/board_list.jsp").forward(request, response);
-    }
-
-    // 만약 제목을 눌러 보기페이지로 가려한다면 이제 boardID로 구분해야함
-    private void handleViewRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        BoardDTO board = BoardUtils.getValidBoard(request, response);
-        if (board != null) {
-            request.setAttribute("board", board);
-            request.getRequestDispatcher("/boards/free/view/board_view.jsp").forward(request, response);
-        }
-    }
-
-    private void handleWriteRequest(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
-        request.getRequestDispatcher("/boards/free/write/board_write.jsp").forward(request, response);
-    }
-
-    // 실제 동작은 아직 안하지만 나중에 필요할지 고민
-    private void handleWriteActionRequest(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
-        BoardDTO board = new BoardDTO();
-        board.setCategory(request.getParameter("boardCategory"));
-        board.setWriter(request.getParameter("boardWriter"));
-        board.setPassword(request.getParameter("boardPassword"));
-        board.setTitle(request.getParameter("boardTitle"));
-        board.setContent(request.getParameter("boardContent"));
-        board.setAvailable(1);
-
-        if (board.getCategory() == null || board.getWriter() == null || board.getPassword() == null ||
-                board.getTitle() == null || board.getContent() == null ||
-                board.getCategory().isEmpty() || board.getWriter().isEmpty() || board.getPassword().isEmpty() ||
-                board.getTitle().isEmpty() || board.getContent().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/boards/free/list");
-            return;
-        }
-
-        BoardDAO boardDAO = new BoardDAO();
-        int result = boardDAO.write(board);
-
+        // 정상 글쓰기 시 목록페이지로 이동
         if (result == 1) {
-            response.sendRedirect(request.getContextPath() + "/boards/free/list");
+            return "redirect:/boards/free/list";
         } else {
-            request.setAttribute("errorMessage", "글 작성에 실패했습니다.");
-            request.getRequestDispatcher("/boards/free/write/board_write.jsp").forward(request, response);
-        }
-
-    }
-
-    private void handleModifyRequest(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
-        BoardDTO board = BoardUtils.getValidBoard(request, response);
-        if (board != null) {
-            request.setAttribute("board", board);
-            request.getRequestDispatcher("/boards/free/modify/board_modify.jsp").forward(request, response);
+            model.addAttribute("errorMessage", "글 작성에 실패했습니다.");
+            return "write/board_write";
         }
     }
 
-    private void handleModifyActionRequest(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
+    @GetMapping("/modify")
+    public String modify(@RequestParam int boardID, Model model) {
+        BoardDTO boardDTO = boardDAO.getBoard(boardID);
 
-        try {
-            int boardID = Integer.parseInt(request.getParameter("boardID"));
-            BoardDTO boardFromRequest = buildBoardFromRequest(request, false);
-            boardFromRequest.setBoardID(boardID);
-
-            if (boardFromRequest.getWriter() == null || boardFromRequest.getPassword() == null ||
-                    boardFromRequest.getTitle() == null || boardFromRequest.getContent() == null ||
-                    boardFromRequest.getWriter().isEmpty() || boardFromRequest.getPassword().isEmpty() ||
-                    boardFromRequest.getTitle().isEmpty() || boardFromRequest.getContent().isEmpty()) {
-                response.sendRedirect(request.getContextPath() + "/boards/free/modify");
-                return;
-            }
-
-            BoardDAO boardDAO = new BoardDAO();
-            int result = boardDAO.modify(boardFromRequest.getBoardID(), boardFromRequest.getWriter(), boardFromRequest.getPassword(),
-                    boardFromRequest.getTitle(), boardFromRequest.getContent());
-            if (result == 1) {
-                response.sendRedirect(request.getContextPath() + "/boards/free/list");
-            } else {
-                // TODO : 에러메시지는 나중에
-                request.setAttribute("errorMessage", "수정에 실패했습니다.");
-                request.getRequestDispatcher("/boards/free/modify/board_modify.jsp").forward(request, response);
-            }
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 게시글 ID입니다.");
+        if (boardDTO != null) {
+            model.addAttribute("board", boardDTO);
+            return "modify/board_modify";
+        } else {
+            model.addAttribute("errorMessage", "수정할 게시글을 찾을 수 없습니다.");
+            return "error/error_page";
         }
     }
 
-    private void handleDeleteRequest(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
-
-        BoardDTO board = BoardUtils.getValidBoard(request, response);
-        if (board != null) {
-            request.setAttribute("board", board);
-            request.getRequestDispatcher("/boards/free/delete/board_checkPassword.jsp").forward(request, response);
+    @PostMapping("/modifyAction")
+    // ModelAttribute를 통해 예를 들어 input name이 boardTitle이면 자동으로 DTO의 setTitle로 연결됨
+    public String modifyAction(@ModelAttribute BoardDTO boardDTO, Model model) {
+        if (boardDTO.getBoardID() == 0 || boardDTO.getWriter() == null || boardDTO.getPassword() == null || boardDTO.getTitle() == null || boardDTO.getContent() == null ||
+                boardDTO.getWriter().isEmpty() || boardDTO.getPassword().isEmpty() || boardDTO.getTitle().isEmpty() || boardDTO.getContent().isEmpty()) {
+            model.addAttribute("errorMessage", "모든 정보를 입력하세요.");
+            return "modify/board_modify";
         }
 
+        int result = boardDAO.modify(
+                boardDTO.getBoardID(),
+                boardDTO.getWriter(),
+                boardDTO.getPassword(),
+                boardDTO.getTitle(),
+                boardDTO.getContent()
+        );
+
+        // 정상적으로 값이 전부 담겼다면..
+        if (result == 1) {
+            return "redirect:/boards/free/view?boardID=" + boardDTO.getBoardID();
+        } else {
+            model.addAttribute("errorMessage", "수정에 실패했습니다.");
+            model.addAttribute("board", boardDTO);
+            return "modify/board_modify";
+        }
     }
 
-    private void handleDeleteActionRequest(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
+    @GetMapping("/delete")
+    public String delete(@RequestParam int boardID, Model model) {
+        BoardDTO boardDTO = boardDAO.getBoard(boardID);
+        if (boardDTO != null) {
+            model.addAttribute("board", boardDTO);
+            return "delete/board_checkPassword";
+        } else {
+            model.addAttribute("errorMessage", "삭제할 게시글을 찾을 수 없습니다.");
+            return "error/error_page";
+        }
+    }
 
-        BoardDTO boardDTO = BoardUtils.getValidBoard(request, response);
-        String password = request.getParameter("password");
+    @PostMapping("/deleteAction")
+    public String deleteAction(@RequestParam int boardID, @RequestParam String password, Model model) {
 
+        BoardDTO boardDTO = boardDAO.getBoard(boardID);
+
+        // id가 null이면..
         if (boardDTO == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "삭제할 게시글을 찾을 수 없습니다.");
-            return;
+            model.addAttribute("errorMessage", "삭제할 게시글을 찾을 수 없습니다.");
+            return "error/error_page";
         }
 
+        *//** equals를 쓸 때 먼저 조건을 따져야하는부분을 앞으로 하기 ex) "a".equals(~) vs ~.equals("a")**//*
+        // 비밀번호가 일치하지 않으면..
         if (!boardDTO.getPassword().equals(password)) {
-            request.setAttribute("errorMessage", "비밀번호가 틀렸습니다.");
-            request.setAttribute("board", boardDTO);
-            request.getRequestDispatcher("/boards/free/delete/board_checkPassword.jsp").forward(request, response);
-            return;
+            model.addAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
+            model.addAttribute("board", boardDTO);
+            return "delete/board_checkPassword";
         }
 
-        BoardDAO boardDAO = new BoardDAO();
-        int result = boardDAO.delete(boardDTO.getBoardID());
+        boardDAO.delete(boardID); //TODO: throwable exception
+        return "redirect:/boards/free/list";
 
+*//*
+        int result = boardDAO.delete(boardID);
         if (result == 1) {
-            response.sendRedirect(request.getContextPath() + "/boards/free/list");
+            return "redirect:/boards/free/list";
         } else {
-            // TODO : 에러메시지는 나중에
-            request.setAttribute("errorMessage", "삭제에 실패했습니다.");
-            request.getRequestDispatcher("/boards/free/view/board_view.jsp").forward(request, response);
+            model.addAttribute("errorMessage", "삭제 처리에 실패했습니다.");
+            return "view/board_view";
         }
-    }
+
+    }*/
 }
