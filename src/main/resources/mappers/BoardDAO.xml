@@ -3,29 +3,58 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!-- 인터페이스 경로 -->
 <mapper namespace="com.study.connection.repository.BoardRepository">
-<!-- TODO: 화면을 보여주기전 데이터만 작성-->
-<!-- TODO: db.sql만들기-->
+    <!-- TODO: 화면을 보여주기전 데이터만 작성-->
+    <!-- TODO: db.sql만들기-->
     <!-- 목록 조회 -->
     <select id="getList" resultType="com.study.connection.dto.BoardListItemResponse">
-        SELECT boardID, category, title, writer, views, createdAt, updatedAt, content, available
+        <!-- 🚨🚨 필드 매핑 불일치 해결: AS (별칭) 사용 🚨🚨 -->
+        SELECT
+        board_id AS boardId,
+        category AS boardCategory,
+        title AS boardTitle,
+        writer AS boardWriter,
+        views AS boardViews,
+        created_at AS boardCreatedAt,
+        updated_at AS boardUpdatedAt
+        <!-- DTO에 없는 content와 available은 목록 조회에서 제거했습니다. -->
         FROM board
         <where>
             available = 1
-            <if test="category != null and category != '' and category != '전체'">
-                AND category = #{category}
+            <!-- 🚨🚨 수정: DTO 필드명에 맞게 category -> boardCategory로 변경 🚨🚨 -->
+            <if test="boardCategory != null and boardCategory != '' and boardCategory != '전체'">
+                AND category = #{boardCategory}
             </if>
-            <if test="keyword != null and keyword != ''">
+            <!-- 🚨🚨 수정: DTO 필드명에 맞게 keyword -> searchKeyword로 변경 🚨🚨 -->
+            <if test="searchKeyword != null and searchKeyword != ''">
                 AND (
-                title LIKE CONCAT('%', #{keyword}, '%')
-                OR writer LIKE CONCAT('%', #{keyword}, '%')
-                )
+                title LIKE CONCAT('%', #{searchKeyword}, '%')
+                OR writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                OR content LIKE CONCAT('%', #{searchKeyword}, '%')  )
             </if>
         </where>
-        ORDER BY boardID DESC
+        <!-- 🚨🚨 수정: DB 컬럼명에 맞게 boardID -> board_id로 변경 🚨🚨 -->
+        ORDER BY board_id DESC
         <!-- service의 db -->
         LIMIT #{limit}
         OFFSET #{skipPage}
     </select>
+
+    <select id="getTotalCount" resultType="int">
+        SELECT COUNT(*) FROM board
+        <where>
+            available = 1
+            <if test="boardCategory != null and boardCategory != '' and boardCategory != '전체'">
+                AND category = #{boardCategory}
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (
+                title LIKE CONCAT('%', #{searchKeyword}, '%')
+                OR writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
 
     <!-- 게시글 등록 -->
     <insert id="write" parameterType="BoardDTO" useGeneratedKeys="true" keyProperty="boardID">
@@ -35,7 +64,7 @@
 
     <!-- 게시글 보기 -->
     <select id="getBoard" resultType="BoardDTO">
-        SELECT * FROM board WHERE boardID = #{boardID}
+        SELECT * FROM board WHERE board_id = #{boardID}
     </select>
 
     <!-- 게시글 수정 -->
@@ -46,14 +75,14 @@
             password = #{password},
             title = #{title},
             content = #{content},
-            updatedAt = NOW()
-        WHERE boardID = #{boardId} AND password = #{password}
+            updated_at = NOW()
+        WHERE board_id = #{boardId} AND password = #{password}
     </update>
 
     <!-- 게시글 삭제 (안보이게) -->
     <update id="delete">
         UPDATE board
         SET available = 0
-        WHERE boardID = #{boardID}
+        WHERE board_id = #{boardID}
     </update>
 </mapper>
