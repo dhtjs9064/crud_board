@@ -116,7 +116,7 @@ public class BoardDAO {
 
     // 다음 페이지가 있는지 확인
     public boolean nextPage(int pageNumber) {
-        String SQL = "SELECT EXISTS(SELECT 1 FROM board WHERE available = 1 ORDER BY boardID DESC LIMIT 1 OFFSET ?) as hasNext";
+        String SQL = "SELECT EXISTS(SELECT 1 FROM board WHERE available = 1 ORDER BY board_id DESC LIMIT 1 OFFSET ?) as hasNext";
         try (Connection conn = DriverManager.getConnection(dbURL, USER, PASS);
              PreparedStatement ps = conn.prepareStatement(SQL)) {
             ps.setInt(1, pageNumber * 10);
@@ -133,7 +133,7 @@ public class BoardDAO {
 
     //보기
     public BoardDTO getBoard(int boardID) {
-        String SQL = "SELECT * FROM board WHERE boardID = ?";
+        String SQL = "SELECT * FROM board WHERE board_id = ?";
         try (Connection conn = DriverManager.getConnection(dbURL, USER, PASS);
              PreparedStatement ps = conn.prepareStatement(SQL)) {
             ps.setInt(1, boardID);
@@ -165,7 +165,7 @@ public class BoardDAO {
     // 해당 ID를 가지고 작성자, 비밀번호, 제목, 내용 4가지를 수정 가능 = write메서드와 약간 비슷함
     public int modify(int boardId, String boardWriter, String boardPassword, String boardTitle, String boardContent) {
         // BoardDTO 객체에 사용자가 입력한 정보들을 board테이블에 저장
-        String SQL = "UPDATE board SET writer = ?, password = ?, title = ?, content = ? WHERE boardID = ?";
+        String SQL = "UPDATE board SET writer = ?, password = ?, title = ?, content = ? WHERE board_id = ?";
         // 동시에 db 작업을 수행하기 위해 이렇게 따로 다시 생성함
         try (Connection conn = DriverManager.getConnection(dbURL, USER, PASS);
              // sql쿼리 실행 전 미리 변수 값을 채워둠(여기서는 사용자가 입력한 데이터를 의미함)
@@ -191,7 +191,7 @@ public class BoardDAO {
     public int delete (int boardID) {
         // BoardDTO 객체에 사용자가 입력한 정보들을 board테이블에 저장
         // available = 0을 만듦으로써 db에는 데이터가 남아있어도 화면에서는 안보이게 됨
-        String SQL = "UPDATE board SET available = 0 WHERE boardID = ?";
+        String SQL = "UPDATE board SET available = 0 WHERE board_id = ?";
         // 동시에 db 작업을 수행하기 위해 이렇게 따로 다시 생성함
         try (Connection conn = DriverManager.getConnection(dbURL, USER, PASS);
              // sql쿼리 실행 전 미리 변수 값을 채워둠(여기서는 사용자가 입력한 데이터를 의미함)
