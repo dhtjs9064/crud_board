@@ -14,6 +14,6 @@ public class BoardListItemResponse {
     private String boardTitle;
     private String boardWriter;
     private int boardViews;
-    private LocalDateTime boardCreatedAt;
-    private LocalDateTime boardUpdatedAt;
+    private String boardCreatedAt;
+    private String boardUpdatedAt;
 }

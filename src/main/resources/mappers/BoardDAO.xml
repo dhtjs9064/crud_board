@@ -7,16 +7,17 @@
     <!-- TODO: db.sql만들기-->
     <!-- 목록 조회 -->
     <select id="getList" resultType="com.study.connection.dto.BoardListItemResponse">
-        <!-- 🚨🚨 필드 매핑 불일치 해결: AS (별칭) 사용 🚨🚨 -->
+        <!-- 필드 매핑 불일치 해결: AS (별칭) 사용 -->
         SELECT
         board_id AS boardId,
         category AS boardCategory,
         title AS boardTitle,
         writer AS boardWriter,
         views AS boardViews,
-        created_at AS boardCreatedAt,
-        updated_at AS boardUpdatedAt
         <!-- DTO에 없는 content와 available은 목록 조회에서 제거했습니다. -->
+        DATE_FORMAT(created_at, '%Y.%m.%d %H:%i') AS boardCreatedAt,
+        DATE_FORMAT(updated_at, '%Y.%m.%d %H:%i') AS boardUpdatedAt
+
         FROM board
         <where>
             available = 1
