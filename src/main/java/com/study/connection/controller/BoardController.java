@@ -25,7 +25,7 @@ public class BoardController {
     private final BoardListService boardListService;
     private final BoardCategoryService boardCategoryService;
 
-    @GetMapping({"/", "/list"})
+    @GetMapping("/list")
     public String list(BoardListRequest request, Model model) {
 
         // 2. Service가 페이징과 목록을 모두 계산하여 반환함
@@ -48,7 +48,7 @@ public class BoardController {
         model.addAttribute("nextPage", result.isHasNextPage());
 
         // application.properties의 prefix와 suffix를 통해 앞에 자동으로 붙여 읽기에 문제없음
-        return "list/board_list";
+        return "boards/free/list/board_list";
     }
 /*    // mybatis에서 구현한 BoardDAO 객체를 Spring(Autowired로)이 주입해줌 = new BoardDAO 안해도됨
     // 이제 Mapper가 붙은 BoardDAO를 통해 xml파일의 sql쿼리를 읽어서 그 안의 실제 구현코드를 생성할 수 있음
