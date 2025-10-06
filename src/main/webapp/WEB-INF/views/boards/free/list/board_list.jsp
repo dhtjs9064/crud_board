@@ -4,6 +4,9 @@
 <%@ page import="java.util.List" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<!-- (제목)문자열을 자르는 함수를 사용하기위해 -->
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -213,45 +216,47 @@
         <h2>자유 게시판 - 목록</h2>
     </div>
 
-    <div class="search-area">
-        <div class="form-group">
-            <span class="search-count">총 <%= totalCount %>건</span>
-        </div>
+    <form action="<%= request.getContextPath() %>/boards/free/list" method="get" class="search-area">
 
-        <div class="form-group">
-            <label for="regDateFrom">등록일</label>
-            <input type="text" id="regDateFrom" name="regDateFrom" value="2019.12.23" style="width: 80px;">
-            <span>-</span>
-            <input type="text" id="regDateTo" name="regDateTo" value="2019.12.23" style="width: 80px;">
-        </div>
+        <div class="search-area">
+            <div class="form-group">
+                <span class="search-count">총 <%= totalCount %>건</span>
+            </div>
 
-        <div class="form-group">
-            <!-- 사용자가 무언가 선택시 "boardCategory"로 controller에 전달-->
-            <select name="boardCategory" style="width: 100px;">
-                <!-- 사용자가 "전체 카테고리를 고르면 controller에는 빈 값이 전달되며, 카테고리는 그 항목으로 유지됨-->
-                <option value=""
-                    <c:if test="${empty boardCategory || boardCategory == ''}">selected</c:if>>
-                </option>
+            <div class="form-group">
+                <label for="regDateFrom">등록일</label>
+                <input type="text" id="regDateFrom" name="regDateFrom" value="2019.12.23" style="width: 80px;">
+                <span>-</span>
+                <input type="text" id="regDateTo" name="regDateTo" value="2019.12.23" style="width: 80px;">
+            </div>
 
-                <!-- 사용자가 고른 카테고리(id)가 이전에 선택했던 카테고리인지 확인 후 같으면 그대로 유지 (= 새로고침 시 유지)-->
-                <c:forEach var="category" items="<%= categories %>">
-                    <option value="${category.id}"
-                            <c:if test="${category.id == boardCategory}">selected</c:if>>
-                            ${category.name}
+            <div class="form-group">
+                <!-- 사용자가 무언가 선택시 "boardCategory"로 controller에 전달-->
+                <select name="boardCategory" style="width: 100px;">
+                    <!-- 사용자가 "전체 카테고리를 고르면 controller에는 빈 값이 전달되며, 카테고리는 그 항목으로 유지됨-->
+                    <option value=""
+                            <c:if test="${empty boardCategory || boardCategory == ''}">selected</c:if>>
                     </option>
-                </c:forEach>
 
-            </select>
+                    <!-- 사용자가 고른 카테고리(id)가 이전에 선택했던 카테고리인지 확인 후 같으면 그대로 유지 (= 새로고침 시 유지)-->
+                    <c:forEach var="category" items="<%= categories %>">
+                        <option value="${category.categoryId}"
+                                <c:if test="${category.categoryId == boardCategory}">selected</c:if>>
+                                ${category.categoryName}
+                        </option>
+                    </c:forEach>
+
+                </select>
+            </div>
+
+            <div class="form-group">
+                <input type="text" name="searchKeyword" placeholder="제목/작성자/내용"
+                       value="<%= currentKeyword != null ? currentKeyword : "" %>" style="width: 150px;">
+            </div>
+
+            <input type="submit" value="검색" class="btn-search">
         </div>
-
-        <div class="form-group">
-            <input type="text" name="searchKeyword" placeholder="제목/작성자/내용"
-                   value="<%= currentKeyword != null ? currentKeyword : "" %>" style="width: 150px;">
-        </div>
-
-        <input type="submit" value="검색" class="btn-search">
-    </div>
-
+    </form>
     <table class="board-table">
         <thead>
         <tr>
@@ -275,7 +280,23 @@
                 <%-- 요청에 맞는 boardID를 가져와서 controller에 요청함 --%>
                 <a href="<%= request.getContextPath() %>/boards/free/view?boardID=<%= board.getBoardId() %>"
                    class="<%= "게시된 화면".equals(board.getBoardTitle()) ? "highlight-title" : "" %>">
-                    <%= board.getBoardTitle() %>
+                    <% String title = board.getBoardTitle();
+                        final int MAX_LENGTH = 80;
+
+                        if (title != null && title.length() > MAX_LENGTH) {
+                    %>
+
+                    <%= title.substring(0, MAX_LENGTH) + "..." %>
+
+                    <%
+                    } else {
+                    %>
+
+                    <%= title %>
+
+                    <%
+                        }
+                    %>
                 </a>
             </td>
             <td><%= board.getBoardWriter()%>
