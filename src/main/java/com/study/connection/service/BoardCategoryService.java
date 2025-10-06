@@ -4,6 +4,8 @@ import com.study.connection.domain.entity.BoardCategory;
 import com.study.connection.dto.BoardCategoryResponse;
 import com.study.connection.mapper.BoardCategoryMapper;
 import com.study.connection.repository.BoardCategoryRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -14,10 +16,12 @@ import java.util.List;
  -> 그러기 위해서는 "전체 카테고리" 객체를 add()하고 db목록의 맨앞에 오도록해야함
  3. 따라서 반환타입 = List<BoardCategoryResponse>
  -> entity 노출을 막기위해 dto를 반환타입으로 함**/
+@Service
+@RequiredArgsConstructor
 public class BoardCategoryService {
     // repository 주입
-    private BoardCategoryRepository boardCategoryRepository;
-    private BoardCategoryMapper boardCategoryMapper;
+    private final BoardCategoryRepository boardCategoryRepository;
+    private final BoardCategoryMapper boardCategoryMapper;
 
     // TODO : 메서드 이름이 적합한 이름인지 고민
     // TODO : MapStruct를 쓰지 않으면 stream().map().collect(Collectors.toList())를 사용해서 "한 리스트의 객체를 다른 타입의 리스트 객체로 변환하는 작업"을 거쳐야하는데 왜 그럴까
