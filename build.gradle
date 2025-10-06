@@ -7,6 +7,15 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.4'
 }
 
+tasks.named('war') {
+    archiveClassifier.set('')
+}
+
+war {
+    from 'src/main/webapp'
+}
+
+
 group 'com.study'
 version '1.0-SNAPSHOT'
 
@@ -41,7 +50,7 @@ dependencies {
     implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
     // JSTL 라이브러리
     implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api'
-    runtimeOnly 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1'
+    implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1'
 
     // lombok
     compileOnly 'org.projectlombok:lombok'
